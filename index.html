@@ -136,14 +136,14 @@
 
         </div>
 
-        <div class="text-center">
+        <!-- <div class="text-center">
             <button onclick="toggleAdmin()" class="text-slate-600 hover:text-red-400 text-xs transition-colors flex items-center gap-1 mx-auto">
                 <i data-lucide="settings" class="w-3 h-3"></i>
                 Kelola Database
             </button>
-        </div>
+        </div> -->
 
-        <div id="adminPanel" class="hidden mt-8 fade-in">
+        <!-- <div id="adminPanel" class="hidden mt-8 fade-in">
             <div class="glass-card p-6 rounded-2xl border border-red-500/20 bg-slate-900/40">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-white font-bold flex items-center gap-2 italic">
@@ -155,15 +155,15 @@
                 
                 <div class="space-y-3 mb-6">
                     <div id="connectionStatus" class="text-[10px] text-amber-500 mb-2 animate-pulse">Menghubungkan ke Pusat Data...</div>
-                    <!-- <input id="newId" placeholder="Kode Akses Baru (Contoh: rahasia1)" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm text-white focus:outline-none focus:border-red-500">
-                    <input id="newLink" placeholder="URL Google Drive" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm text-white focus:outline-none focus:border-red-500"> -->
+                    <input id="newId" placeholder="Kode Akses Baru (Contoh: rahasia1)" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm text-white focus:outline-none focus:border-red-500">
+                    <input id="newLink" placeholder="URL Google Drive" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm text-white focus:outline-none focus:border-red-500">
                     <input id="newId" placeholder="Kode Akses Baru" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm text-white">
                     <input id="newName" placeholder="Nama Folder / Keterangan" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm text-white">
                     <input id="newLink" placeholder="URL Google Drive" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm text-white">
                     <button onclick="saveData()" id="saveBtn" class="w-full bg-red-600 hover:bg-red-500 py-2 rounded-lg text-white text-sm font-bold transition-all">SIMPAN</button>
                 </div>
 
-                <!-- <div class="border-t border-slate-700 pt-4">
+                 <div class="border-t border-slate-700 pt-4">
                     <div class="flex justify-between items-center mb-2">
                         <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Daftar Terdaftar</p>
                         <span id="userTag" class="text-[8px] text-slate-700 font-mono"></span>
@@ -171,9 +171,9 @@
                     <div id="dataList" class="max-h-40 overflow-y-auto space-y-2 text-xs">
                         <p class="text-slate-600 italic">Memuat data...</p>
                     </div>
-                </div> -->
+                </div>
             </div>
-        </div>
+        </div> -->
 
         <p class="text-center text-slate-600 text-[10px] mt-10 uppercase tracking-widest">&copy; 2026 DIREKTORAT JENDERAL BADAN PERADILAN UMUM <br/> MAHKAMAH AGUNG REPUBLIK INDONESIA</p>
     </div>
@@ -387,18 +387,49 @@
 
                 const result = await response.json();
 
+                // if (result.status == "success") {
+
+                //     document.getElementById('driveName').innerText = result.nama;
+
+                //     document.getElementById('driveLink').href = result.link;
+
+                //     document.getElementById('resultBox')
+                //         .classList.remove('hidden');
+
+                //     showStatus("Akses berhasil!", "success");
+
                 if (result.status == "success") {
 
-                    document.getElementById('driveName').innerText = result.nama;
+                    const nama = result.nama;
+                    const link = result.link;
 
-                    document.getElementById('driveLink').href = result.link;
+                    if (
+                        !nama ||
+                        !link ||
+                        nama === "#N/A" ||
+                        link === "#N/A"
+                    ) {
+
+                        showStatus(
+                            "Satker yang akan Anda asesmen belum mengirimkan link dokumen eviden AMPUH melalui form pengumpulan. Silakan hubungi Admin AMPUH.",
+                            "error"
+                        );
+
+                        document.getElementById('resultBox')
+                            .classList.add('hidden');
+
+                        return;
+                    }
+
+                    document.getElementById('driveName').innerText = nama;
+
+                    document.getElementById('driveLink').href = link;
 
                     document.getElementById('resultBox')
                         .classList.remove('hidden');
 
                     showStatus("Akses berhasil!", "success");
-
-                    
+    
 
                 } else {
 
