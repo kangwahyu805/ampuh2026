@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVIDEN AMPUH - Cloud Vault</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #450a0a, #020617);
+            min-height: 100vh;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(20, 3, 3, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        }
+
+        .neon-glow {
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        .gradient-border {
+            position: relative;
+            border-radius: 1rem;
+        }
+
+        .gradient-border::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(45deg, #ef4444, #f59e0b, #991b1b);
+            border-radius: 1.1rem;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .btn-red {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(90deg, #991b1b, #ef4444);
+        }
+
+        .btn-red:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .btn-red:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #991b1b; border-radius: 10px; }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex flex-col items-center min-h-screen">
+
+    <div class="w-full max-w-md fade-in">
+        <div class="text-center mb-8">
+            <div class="inline-block p-3 rounded-2xl bg-red-500/10 mb-4 border border-red-500/20">
+                <i data-lucide="shield-check" class="w-8 h-8 text-red-500"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold tracking-tight neon-glow text-white">EVIDEN <span class="text-red-500 text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-amber-500">AMPUH</span></h1>
+            <p class="text-slate-400 mt-2 text-sm">Pusat Data Eviden AMPUH Satker</p>
+        </div>
+
+        <div class="glass-card gradient-border p-6 rounded-2xl mb-6">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2 px-1">Access Code</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-red-500 transition-colors">
+                            <i data-lucide="key" class="w-5 h-5"></i>
+                        </div>
+                        <input 
+                            type="password" 
+                            id="passwordInput"
+                            placeholder="Masukkan kode rahasia..." 
+                            class="block w-full pl-10 pr-3 py-3 bg-slate-900/50 border border-slate-700 rounded-xl leading-5 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all"
+                        >
+                    </div>
+                </div>
+
+                <button 
+                    id="unlockBtn"
+                    onclick="unlockDrive()"
+                    class="btn-red w-full py-3 px-4 rounded-xl text-white font-bold flex items-center justify-center gap-2"
+                >
+                    <i data-lucide="lock" class="w-4 h-4"></i>
+                    <span>VERIFIKASI AKSES</span>
+                </button>
+            </div>
+
+            <div id="statusMessage" class="hidden mt-4 p-3 rounded-lg text-sm text-center"></div>
+        </div>
+
+        <div id="resultBox" class="hidden fade-in">
+            <div class="glass-card p-6 rounded-2xl border-l-4 border-red-600 mb-6">
+                <div class="flex items-start gap-4">
+                    <div class="p-2 bg-red-500/20 rounded-lg">
+                        <i data-lucide="folder-open" class="w-6 h-6 text-red-500"></i>
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <h3 class="text-white font-semibold">Akses Terbuka!</h3>
+                        <p id="driveName" class="text-slate-400 text-xs mb-3 font-mono"></p>
+                        <a 
+                            id="driveLink" 
+                            href="#" 
+                            target="_blank"
+                            class="inline-flex items-center gap-2 text-red-400 hover:text-red-300 font-medium text-sm break-all underline decoration-red-500/30 underline-offset-4"
+                        >
+                            <span>Buka Google Drive</span>
+                            <i data-lucide="external-link" class="w-3 h-3"></i>
+                            
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="text-center">
+            <button onclick="toggleAdmin()" class="text-slate-600 hover:text-red-400 text-xs transition-colors flex items-center gap-1 mx-auto">
+                <i data-lucide="settings" class="w-3 h-3"></i>
+                Kelola Database
+            </button>
+        </div>
+
+        <div id="adminPanel" class="hidden mt-8 fade-in">
+            <div class="glass-card p-6 rounded-2xl border border-red-500/20 bg-slate-900/40">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-white font-bold flex items-center gap-2 italic">
+                        <i data-lucide="database" class="w-4 h-4 text-red-500"></i>
+                        PENGELOLA DATA
+                    </h2>
+                    <button onclick="toggleAdmin()" class="text-slate-500 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                
+                <div class="space-y-3 mb-6">
+                    <div id="connectionStatus" class="text-[10px] text-amber-500 mb-2 animate-pulse">Menghubungkan ke Pusat Data...</div>
+                    <!-- <input id="newId" placeholder="Kode Akses Baru (Contoh: rahasia1)" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm text-white focus:outline-none focus:border-red-500">
+                    <input id="newLink" placeholder="URL Google Drive" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm text-white focus:outline-none focus:border-red-500"> -->
+                    <input id="newId" placeholder="Kode Akses Baru" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm text-white">
+                    <input id="newName" placeholder="Nama Folder / Keterangan" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm text-white">
+                    <input id="newLink" placeholder="URL Google Drive" class="w-full bg-slate-800 border border-slate-700 p-2 rounded-lg text-sm text-white">
+                    <button onclick="saveData()" id="saveBtn" class="w-full bg-red-600 hover:bg-red-500 py-2 rounded-lg text-white text-sm font-bold transition-all">SIMPAN</button>
+                </div>
+
+                <!-- <div class="border-t border-slate-700 pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Daftar Terdaftar</p>
+                        <span id="userTag" class="text-[8px] text-slate-700 font-mono"></span>
+                    </div>
+                    <div id="dataList" class="max-h-40 overflow-y-auto space-y-2 text-xs">
+                        <p class="text-slate-600 italic">Memuat data...</p>
+                    </div>
+                </div> -->
+            </div>
+        </div>
+
+        <p class="text-center text-slate-600 text-[10px] mt-10 uppercase tracking-widest">&copy; 2026 DIREKTORAT JENDERAL BADAN PERADILAN UMUM <br/> MAHKAMAH AGUNG REPUBLIK INDONESIA</p>
+    </div>
+
+    <script type="module">
+        // import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // import { getFirestore, doc, setDoc, getDocs, collection, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    //     const appId = typeof __app_id !== 'undefined' ? __app_id : 'eviden-ampuh-vault';
+    //     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+    //         apiKey: "demo-key", authDomain: "demo.firebaseapp.com", projectId: "demo-project"
+    //     };
+
+    //     const app = initializeApp(firebaseConfig);
+    //     const db = getFirestore(app);
+    //     const auth = getAuth(app);
+
+    //     let currentUser = null;
+    //     let isAuthReady = false;
+
+    //     onAuthStateChanged(auth, (user) => {
+    //         if (user) {
+    //             currentUser = user;
+    //             isAuthReady = true;
+    //             document.getElementById('connectionStatus').innerText = "Terhubung: Database Aktif";
+    //             document.getElementById('connectionStatus').classList.remove('text-amber-500', 'animate-pulse');
+    //             document.getElementById('connectionStatus').classList.add('text-green-500');
+    //             document.getElementById('userTag').innerText = `ID: ${user.uid.substring(0, 8)}`;
+    //             setupRealtimeListener();
+    //         } else {
+    //             signInAnonymously(auth).catch(err => {
+    //                 console.error("Auth Error:", err);
+    //                 document.getElementById('connectionStatus').innerText = "Gagal Terhubung ke Database";
+    //             });
+    //         }
+    //     });
+
+    //     window.unlockDrive = async () => {
+    //         if (!isAuthReady) {
+    //             showStatus("Sistem belum siap, tunggu sebentar...", "error");
+    //             return;
+    //         }
+
+    //         const input = document.getElementById('passwordInput');
+    //         const pass = input.value.trim().toLowerCase();
+    //         const btn = document.getElementById('unlockBtn');
+    //         const status = document.getElementById('statusMessage');
+    //         const resultBox = document.getElementById('resultBox');
+
+    //         if (!pass) {
+    //             showStatus("Masukkan kode akses.", "error");
+    //             return;
+    //         }
+
+    //         btn.disabled = true;
+    //         status.innerHTML = "Memverifikasi...";
+    //         status.className = "mt-4 p-3 rounded-lg text-sm text-center bg-red-500/10 text-red-400 block";
+
+    //         try {
+    //             // Rule 1: Using strict path
+    //             const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'vault_links');
+    //             const querySnapshot = await getDocs(colRef);
+                
+    //             let found = null;
+    //             querySnapshot.forEach((doc) => {
+    //                 if (doc.id === pass) found = doc.data();
+    //             });
+
+    //             if (found) {
+    //                 document.getElementById('driveName').innerText = found.name;
+    //                 document.getElementById('driveLink').href = found.link;
+    //                 resultBox.classList.remove('hidden');
+    //                 status.classList.add('hidden');
+    //                 input.classList.remove('border-slate-700');
+    //                 input.classList.add('border-green-500');
+    //             } else {
+    //                 showStatus("Kode salah atau tidak terdaftar.", "error");
+    //                 resultBox.classList.add('hidden');
+    //                 input.classList.remove('border-slate-700');
+    //                 input.classList.add('border-red-500');
+    //             }
+    //         } catch (error) {
+    //             console.error(error);
+    //             showStatus("Gagal akses database: " + error.message, "error");
+    //         } finally {
+    //             btn.disabled = false;
+    //         }
+    //     };
+
+    //     window.saveData = async () => {
+    //         if (!isAuthReady) return;
+
+    //         const id = document.getElementById('newId').value.trim().toLowerCase();
+    //         const name = document.getElementById('newName').value.trim();
+    //         const link = document.getElementById('newLink').value.trim();
+    //         const btn = document.getElementById('saveBtn');
+
+    //         if (!id || !name || !link) {
+    //             showStatus("Lengkapi semua kolom!", "error");
+    //             return;
+    //         }
+
+    //         btn.disabled = true;
+    //         btn.innerText = "MENYIMPAN...";
+
+    //         try {
+    //             // Rule 1: Using strict path
+    //             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'vault_links', id);
+    //             await setDoc(docRef, {
+    //                 name: name,
+    //                 link: link,
+    //                 updatedAt: new Date().toISOString(),
+    //                 owner: currentUser.uid
+    //             });
+                
+    //             document.getElementById('newId').value = "";
+    //             document.getElementById('newName').value = "";
+    //             document.getElementById('newLink').value = "";
+                
+    //             // Success feedback using custom status instead of alert
+    //             const status = document.getElementById('connectionStatus');
+    //             status.innerText = "DATA BERHASIL DISIMPAN!";
+    //             setTimeout(() => status.innerText = "Terhubung: Database Aktif", 3000);
+
+    //         } catch (error) {
+    //             console.error("Save Error:", error);
+    //             document.getElementById('connectionStatus').innerText = "Gagal simpan: " + error.message;
+    //         } finally {
+    //             btn.disabled = false;
+    //             btn.innerText = "SIMPAN";
+    //         }
+    //     };
+
+    //     function setupRealtimeListener() {
+    //         const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'vault_links');
+    //         onSnapshot(colRef, (snapshot) => {
+    //             const listDiv = document.getElementById('dataList');
+    //             listDiv.innerHTML = "";
+                
+    //             if (snapshot.empty) {
+    //                 listDiv.innerHTML = '<p class="text-slate-600">Database kosong.</p>';
+    //                 return;
+    //             }
+
+    //             snapshot.forEach((docSnap) => {
+    //                 const data = docSnap.data();
+    //                 const item = document.createElement('div');
+    //                 item.className = "flex justify-between items-center bg-slate-800/50 p-2 rounded border border-slate-700 fade-in";
+    //                 item.innerHTML = `
+    //                     <div class="flex-1">
+    //                         <span class="text-red-400 font-bold uppercase">${docSnap.id}</span>
+    //                         <p class="text-[10px] text-slate-500 truncate max-w-[150px]">${data.name}</p>
+    //                     </div>
+    //                     <button onclick="deleteData('${docSnap.id}')" class="text-slate-500 hover:text-red-500 p-1">
+    //                         <i data-lucide="trash-2" class="w-3 h-3"></i>
+    //                     </button>
+    //                 `;
+    //                 listDiv.appendChild(item);
+    //             });
+    //             lucide.createIcons();
+    //         }, (error) => {
+    //             console.error("Snapshot Error:", error);
+    //             document.getElementById('dataList').innerHTML = '<p class="text-red-500">Error sinkronisasi data.</p>';
+    //         });
+    //     }
+
+    //     window.deleteData = async (id) => {
+    //         if (!confirm(`Hapus kode akses '${id}'?`)) return;
+    //         try {
+    //             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'vault_links', id);
+    //             await deleteDoc(docRef);
+    //         } catch (error) {
+    //             console.error("Delete Error:", error);
+    //         }
+    //     };
+
+    //     window.toggleAdmin = () => {
+    //         const panel = document.getElementById('adminPanel');
+    //         panel.classList.toggle('hidden');
+    //     };
+
+    //     function showStatus(msg, type) {
+    //         const status = document.getElementById('statusMessage');
+    //         status.innerHTML = msg;
+    //         status.className = `mt-4 p-3 rounded-lg text-sm text-center block ${type === 'error' ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'}`;
+    //     }
+
+    //     lucide.createIcons();
+
+    
+
+        const API_URL = "https://script.google.com/macros/s/AKfycbwL6Rsmvpn6g3YxXuGfga_OrA7TEd5p_bwxeIrEJOxaslSYtsqrKSfm_NvkOST7HZzFUg/exec";
+
+        window.unlockDrive = async () => {
+
+            const pass = document.getElementById('passwordInput')
+                .value
+                .trim();
+
+            if (!pass) {
+                showStatus("Masukkan kode akses!", "error");
+                return;
+            }
+
+            try {
+
+                const response = await fetch(
+                    `${API_URL}?action=get&kode=${pass}`
+                );
+
+                const result = await response.json();
+
+                if (result.status == "success") {
+
+                    document.getElementById('driveName').innerText = result.nama;
+
+                    document.getElementById('driveLink').href = result.link;
+
+                    document.getElementById('resultBox')
+                        .classList.remove('hidden');
+
+                    showStatus("Akses berhasil!", "success");
+
+                    
+
+                } else {
+
+                    showStatus("Kode tidak ditemukan!", "error");
+
+                    document.getElementById('resultBox')
+                        .classList.add('hidden');
+                }
+
+            } catch (err) {
+
+                console.log(err);
+
+                showStatus("Gagal mengambil data!", "error");
+            }
+        };
+
+
+        window.saveData = async () => {
+
+            const kode = document.getElementById('newId')
+                .value.trim();
+
+            const nama = document.getElementById('newName')
+                .value.trim();
+
+            const link = document.getElementById('newLink')
+                .value.trim();
+
+            if (!kode || !nama || !link) {
+
+                showStatus("Semua field wajib diisi!", "error");
+                return;
+            }
+
+            try {
+
+                const response = await fetch(
+                    `${API_URL}?action=save&kode=${kode}&nama=${nama}&link=${link}`
+                );
+
+                const result = await response.json();
+
+                if (result.status == "saved") {
+
+                    showStatus("Data berhasil disimpan!", "success");
+
+                    document.getElementById('newId').value = "";
+                    document.getElementById('newName').value = "";
+                    document.getElementById('newLink').value = "";
+
+                } else {
+
+                    showStatus("Gagal simpan data!", "error");
+                }
+
+            } catch (err) {
+
+                console.log(err);
+
+                showStatus("Koneksi gagal!", "error");
+            }
+        };
+
+        window.toggleAdmin = () => {
+
+            document.getElementById('adminPanel')
+                .classList.toggle('hidden');
+        };
+
+        function showStatus(msg, type) {
+
+            const status = document.getElementById('statusMessage');
+
+            status.innerHTML = msg;
+
+            status.className =
+                `mt-4 p-3 rounded-lg text-sm text-center block ${
+                    type === 'error'
+                    ? 'bg-red-500/10 text-red-400'
+                    : 'bg-green-500/10 text-green-400'
+                }`;
+        }
+
+        lucide.createIcons();
+
+
+    </script>
+</body>
+</html>
